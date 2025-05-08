@@ -87,6 +87,26 @@ class VoiceRecognitionService {
       }
     }
     
+    // Check product commands for farmers
+    if (!command) {
+      for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.products)) {
+        if (transcript.includes(tamilCmd)) {
+          command = englishAction;
+          break;
+        }
+      }
+    }
+    
+    // Check order commands
+    if (!command) {
+      for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.orders)) {
+        if (transcript.includes(tamilCmd)) {
+          command = englishAction;
+          break;
+        }
+      }
+    }
+    
     if (command && this.commandCallback) {
       this.commandCallback(command);
     } else if (this.commandCallback) {
