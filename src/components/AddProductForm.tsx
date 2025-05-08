@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -15,9 +14,10 @@ import {
 } from "@/components/ui/form";
 import { useApp } from "@/contexts/AppContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Upload } from "lucide-react";
+import { PlusCircle, Upload, Mic } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Product } from "@/lib/types";
+import { useVoiceCommand } from "@/lib/voiceRecognition";
 
 interface ProductFormData {
   name: string;

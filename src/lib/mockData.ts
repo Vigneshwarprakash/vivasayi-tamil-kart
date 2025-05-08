@@ -1,4 +1,3 @@
-
 import { Product, User, Order } from "./types";
 
 export const mockUsers: User[] = [
@@ -143,7 +142,7 @@ export const mockProducts: Product[] = [
     farmerId: "f1",
     farmerName: "Ramu Velan",
     name: "Organic Potatoes",
-    nameInTamil: "இயற்கை உருளைக்கிழங்கு",
+    nameInTamil: "இயற்���ை உருளைக்கிழங்கு",
     description: "Fresh organic potatoes",
     category: "vegetables",
     price: 40,
@@ -210,30 +209,49 @@ export const mockOrders: Order[] = [
 // Tamil Voice Commands Dictionary
 export const tamilVoiceCommands = {
   search: {
-    "தக்காளி காண்பி": "search tomatoes",
+    "தக்காளி காண்பி": "search tomato",
     "அரிசி காண்பி": "search rice",
     "வாழைப்பழம் காண்பி": "search banana",
     "தேங்காய் காண்பி": "search coconut",
-    "கீரை காண்பி": "search spinach",
-    "கேரட் காண்பி": "search carrots",
-    "முட்டை காண்பி": "search eggs",
-    "உருளைக்கிழங்கு காண்பி": "search potatoes"
+    "உருளைக்கிழங்கு காண்பி": "search potato",
+    "காய்கறிகள் காண்பி": "search vegetables",
+    "பழங்கள் காண்பி": "search fruits",
+    "மளிகை காண்பி": "search groceries",
+    "தானியங்கள் காண்பி": "search grains"
   },
   navigation: {
-    "கார்ட்டை திற": "open cart",
-    "முகப்புக்கு செல்": "go to home",
-    "பக்கம் முன்னே செல்": "go back",
-    "மேலே செல்": "scroll up",
-    "கீழே செல்": "scroll down",
-    "தயாரிப்புகள் காட்டு": "go to products",
-    "பதிவு பக்கம் செல்": "go to register",
-    "உள்நுழைய செல்": "go to login"
+    "முகப்புக்குச் செல்": "go to home",
+    "பொருட்களைக் காட்டு": "go to products",
+    "கூடைக்குச் செல்": "go to cart",
+    "கார்ட்���ை திற": "open cart",
+    "விவசாயி பக்கம் செல்": "go to farmer dashboard",
+    "நுகர்வோர் பக்கம் செல்": "go to consumer dashboard",
+    "புதிய பொருள் சேர்": "add new product",
+    "சேர் பொருள்": "add product",
+    "உள்நுழைய": "go to login",
+    "பதிவு செய்ய": "go to register"
   },
   checkout: {
-    "பணம் செலுத்து": "proceed to payment",
-    "ஆர்டரை உறுதி செய்": "confirm order",
-    "பட்டியலை காண்பி": "show invoice",
-    "கார்ட்டை காலி செய்": "clear cart",
-    "தொடர் கொள்முதல்": "continue shopping"
+    "வாங்கு": "checkout",
+    "கொள்முதல் செய்": "place order",
+    "கூடையை காலி செய்": "clear cart"
+  },
+  products: {
+    "பொருளைச் சேர்": "add product",
+    "புதிய பொருள்": "new product",
+    "விலை அமை": "set price",
+    "அளவு அமை": "set quantity",
+    "பெயர் அமை": "set name",
+    "விளக்கம் சேர்": "add description",
+    "படம் சேர்": "add image",
+    "விவரங்களை சமர்ப்பி": "submit form",
+    "வகை அமை": "set category",
+    "அறுவடை தேதி அமை": "set harvest date"
+  },
+  orders: {
+    "ஆர்டர்களைக் காட்டு": "show orders",
+    "ஆர்டரை ஏற்றுக்கொள்": "accept order",
+    "ஆர்டரை நிராகரி": "reject order",
+    "ஆர்டர் நிலையைக் காட்டு": "show order status"
   }
 };

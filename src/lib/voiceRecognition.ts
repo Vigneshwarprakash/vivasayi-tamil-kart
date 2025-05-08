@@ -62,7 +62,7 @@ class VoiceRecognitionService {
     // Check search commands
     for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.search)) {
       if (transcript.includes(tamilCmd)) {
-        command = englishAction;
+        command = englishAction as string;
         break;
       }
     }
@@ -71,7 +71,7 @@ class VoiceRecognitionService {
     if (!command) {
       for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.navigation)) {
         if (transcript.includes(tamilCmd)) {
-          command = englishAction;
+          command = englishAction as string;
           break;
         }
       }
@@ -81,7 +81,7 @@ class VoiceRecognitionService {
     if (!command) {
       for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.checkout)) {
         if (transcript.includes(tamilCmd)) {
-          command = englishAction;
+          command = englishAction as string;
           break;
         }
       }
@@ -91,7 +91,7 @@ class VoiceRecognitionService {
     if (!command) {
       for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.products)) {
         if (transcript.includes(tamilCmd)) {
-          command = englishAction;
+          command = englishAction as string;
           break;
         }
       }
@@ -101,7 +101,7 @@ class VoiceRecognitionService {
     if (!command) {
       for (const [tamilCmd, englishAction] of Object.entries(tamilVoiceCommands.orders)) {
         if (transcript.includes(tamilCmd)) {
-          command = englishAction;
+          command = englishAction as string;
           break;
         }
       }
