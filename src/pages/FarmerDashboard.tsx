@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
@@ -8,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductTable from "@/components/ProductTable";
 import { Product } from "@/lib/types";
 import { mockProducts } from "@/lib/mockData";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Mic } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { useVoiceCommand } from "@/lib/voiceRecognition";
 
