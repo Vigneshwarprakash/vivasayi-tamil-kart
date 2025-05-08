@@ -1,8 +1,17 @@
 
 import { tamilVoiceCommands } from "./mockData";
 
+// Add TypeScript interface definitions for SpeechRecognition
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
+
 class VoiceRecognitionService {
-  private recognition: SpeechRecognition | null = null;
+  private recognition: any = null;
   private isListening: boolean = false;
   private commandCallback: ((command: string) => void) | null = null;
   private errorCallback: ((error: string) => void) | null = null;

@@ -29,7 +29,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           className="h-full w-full object-cover"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = "/placeholder.svg"; // Fallback image
+            target.src = "/assets/placeholder.svg"; // Fallback image
           }}
         />
         {product.rating && (
