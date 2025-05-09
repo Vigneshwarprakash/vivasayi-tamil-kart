@@ -3,6 +3,12 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { User, CartItem, Product } from "@/lib/types";
 import { mockUsers, mockProducts } from "@/lib/mockData";
 import { toast } from "@/components/ui/use-toast";
+import { 
+  getCurrentUser, 
+  signIn, 
+  signOut, 
+  fetchProducts
+} from "@/lib/supabase";
 
 interface AppContextType {
   currentUser: User | null;
@@ -19,6 +25,7 @@ interface AppContextType {
   toggleLanguage: () => void;
   getCartTotal: () => number;
   registerUser: (userData: Partial<User>, password: string) => Promise<boolean>;
+  refreshProducts: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -27,14 +34,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<Product[]>(mockProducts); // Start with mock data, will be replaced
   const [language, setLanguage] = useState<"english" | "tamil">("english");
 
-  useEffect(() => {
-    // Check if user is already logged in (using localStorage for demo)
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+  const initializeApp = async () => {
+    // Check if user is already logged in
+    const user = await getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
       setIsLoggedIn(true);
     }
 
@@ -49,6 +56,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (storedLanguage && (storedLanguage === "english" || storedLanguage === "tamil")) {
       setLanguage(storedLanguage as "english" | "tamil");
     }
+    
+    // Load real products from Supabase
+    await refreshProducts();
+  };
+
+  useEffect(() => {
+    initializeApp();
   }, []);
 
   useEffect(() => {
@@ -56,24 +70,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
+  const refreshProducts = async () => {
+    try {
+      const data = await fetchProducts();
+      if (data && data.length > 0) {
+        setProducts(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing products:", error);
+    }
+  };
+
   const login = async (email: string, password: string) => {
-    // In a real app, this would make an API call
-    // For demo, we're using mockUsers
-    const user = mockUsers.find(user => user.email === email);
+    const result = await signIn(email, password);
     
-    if (user) {
-      setCurrentUser(user);
+    if (result.success && result.user) {
+      setCurrentUser(result.user as User);
       setIsLoggedIn(true);
-      localStorage.setItem("currentUser", JSON.stringify(user));
+      localStorage.setItem("currentUser", JSON.stringify(result.user));
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${user.name}!`,
+        description: `Welcome back, ${result.user.name || 'User'}!`,
       });
       return true;
     } else {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password",
+        description: result.error || "Invalid email or password",
         variant: "destructive",
       });
       return false;
@@ -81,8 +104,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const registerUser = async (userData: Partial<User>, password: string) => {
-    // In a real app, this would make an API call
-    // For demo, we just pretend it was successful
+    // This will be implemented with Supabase auth
     toast({
       title: "Registration Successful",
       description: "Your account has been created successfully",
@@ -90,7 +112,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await signOut();
     setCurrentUser(null);
     setIsLoggedIn(false);
     localStorage.removeItem("currentUser");
@@ -176,6 +199,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toggleLanguage,
       getCartTotal,
       registerUser,
+      refreshProducts,
     }}>
       {children}
     </AppContext.Provider>
