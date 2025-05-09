@@ -7,7 +7,8 @@ import {
   getCurrentUser, 
   signIn, 
   signOut, 
-  fetchProducts
+  fetchProducts,
+  signUp
 } from "@/lib/supabase";
 
 interface AppContextType {
@@ -34,7 +35,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [products, setProducts] = useState<Product[]>(mockProducts); // Start with mock data, will be replaced
+  const [products, setProducts] = useState<Product[]>([]); 
   const [language, setLanguage] = useState<"english" | "tamil">("english");
 
   const initializeApp = async () => {
@@ -104,12 +105,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const registerUser = async (userData: Partial<User>, password: string) => {
-    // This will be implemented with Supabase auth
-    toast({
-      title: "Registration Successful",
-      description: "Your account has been created successfully",
-    });
-    return true;
+    try {
+      const result = await signUp(userData.email || "", password, userData);
+      if (result.success) {
+        toast({
+          title: "Registration Successful",
+          description: "Your account has been created successfully",
+        });
+        return true;
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: result.error || "Failed to register",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error: any) {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const logout = async () => {
