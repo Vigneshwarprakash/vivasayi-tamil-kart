@@ -3,12 +3,14 @@ import { toast } from "@/components/ui/use-toast";
 import { Product, User, CartItem, Order } from '@/lib/types';
 
 // Initialize Supabase client
-// For development purposes, we'll provide fallback values if env vars are missing
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-id.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+const supabaseUrl = 'https://swsmtmukcqcsqekqazts.supabase.co';
+// For security, we should use environment variables for the key, 
+// but since this is provided directly in the chat, we'll use it directly
+// In a production environment, always use environment variables for sensitive keys
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3c210bXVrY3Fjc3Fla3FhenRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NTc4NTEsImV4cCI6MjAyNTIzMzg1MX0.sGTpEXzcNGAB1BUt-0okyQlXYYvUW-0DphMwVLjO_JE'; 
 
-// Create a mock client for development when credentials aren't available
-const isMockClient = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Determine if we should use mock client
+const isMockClient = !supabaseUrl || !supabaseAnonKey;
 
 if (isMockClient) {
   console.warn('Using mock Supabase client. For production, please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
