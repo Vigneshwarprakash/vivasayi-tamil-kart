@@ -1,17 +1,20 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/components/ui/use-toast";
 import { Product, User, CartItem, Order } from '@/lib/types';
 
 // Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// For development purposes, we'll provide fallback values if env vars are missing
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-id.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
+// Create a mock client for development when credentials aren't available
+const isMockClient = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (isMockClient) {
+  console.warn('Using mock Supabase client. For production, please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // User authentication functions
 export const signUp = async (email: string, password: string, userData: Partial<User>) => {
@@ -110,6 +113,13 @@ export const signOut = async () => {
 // Product related functions
 export const fetchProducts = async () => {
   try {
+    if (isMockClient) {
+      // Return mock data when using mock client
+      console.log("Using mock product data because Supabase credentials are missing");
+      const { mockProducts } = await import('@/lib/mockData');
+      return mockProducts;
+    }
+
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -145,7 +155,10 @@ export const fetchProducts = async () => {
       description: error.message,
       variant: "destructive",
     });
-    return [];
+    
+    // Fallback to mock data on error
+    const { mockProducts } = await import('@/lib/mockData');
+    return mockProducts;
   }
 };
 
@@ -478,6 +491,12 @@ export const uploadProductImage = async (file: File, path: string) => {
 
 export const getCurrentUser = async () => {
   try {
+    if (isMockClient) {
+      // Return mock user data when using mock client
+      console.log("Using mock user data because Supabase credentials are missing");
+      return null;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) return null;
