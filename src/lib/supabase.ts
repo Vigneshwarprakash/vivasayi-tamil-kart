@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/components/ui/use-toast";
 import { Product, User, CartItem, Order } from '@/lib/types';
@@ -7,7 +8,7 @@ const supabaseUrl = 'https://swsmtmukcqcsqekqazts.supabase.co';
 // For security, we should use environment variables for the key, 
 // but since this is provided directly in the chat, we'll use it directly
 // In a production environment, always use environment variables for sensitive keys
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3c210bXVrY3Fjc3Fla3FhenRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDk2NTc4NTEsImV4cCI6MjAyNTIzMzg1MX0.sGTpEXzcNGAB1BUt-0okyQlXYYvUW-0DphMwVLjO_JE'; 
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3c210bXVrY3Fjc3Fla3FhenRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY3MTYzNDUsImV4cCI6MjA2MjI5MjM0NX0.0jbf0ZMsHrEiWf5MFfVfXiX2Nw-ISeb3F4SYePEEkM8'; 
 
 // Determine if we should use mock client
 const isMockClient = !supabaseUrl || !supabaseAnonKey;
