@@ -9,15 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      "vivayasi kart": {
+      products: {
         Row: {
-          "-- This SQL can be run in the Supabase SQL Editor": string | null
+          created_at: string | null
+          description: string
+          farmer_id: string
+          id: string
+          image_url: string | null
+          location: string
+          name: string
+          price: number
+          quantity: number
+          unit: string
+          updated_at: string | null
         }
         Insert: {
-          "-- This SQL can be run in the Supabase SQL Editor"?: string | null
+          created_at?: string | null
+          description: string
+          farmer_id: string
+          id?: string
+          image_url?: string | null
+          location: string
+          name: string
+          price: number
+          quantity: number
+          unit: string
+          updated_at?: string | null
         }
         Update: {
-          "-- This SQL can be run in the Supabase SQL Editor"?: string | null
+          created_at?: string | null
+          description?: string
+          farmer_id?: string
+          id?: string
+          image_url?: string | null
+          location?: string
+          name?: string
+          price?: number
+          quantity?: number
+          unit?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
