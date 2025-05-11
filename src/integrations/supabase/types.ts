@@ -49,6 +49,56 @@ export type Database = {
           unit?: string
           updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "fk_products_farmer"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string
+          id: string
+          is_verified: boolean | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          profile_image: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          is_verified?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          profile_image?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_verified?: boolean | null
+          location?: string | null
+          name?: string | null
+          phone?: string | null
+          profile_image?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
         Relationships: []
       }
     }

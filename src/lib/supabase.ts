@@ -409,6 +409,10 @@ export const fetchFarmerOrders = async (farmerId: string) => {
       
     if (productsError) throw productsError;
     
+    if (!products || products.length === 0) {
+      return []; // No products, so no orders
+    }
+    
     const productIds = products.map(p => p.id);
     
     // Get all order items containing these products
@@ -419,12 +423,19 @@ export const fetchFarmerOrders = async (farmerId: string) => {
       
     if (itemsError) throw itemsError;
     
+    if (!orderItems || orderItems.length === 0) {
+      return []; // No order items for these products
+    }
+    
     // Get the full orders
     const orderIds = Array.from(new Set(orderItems.map(item => item.order_id)));
     
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select('*')
+      .select(`
+        *,
+        customers:customer_id (name, email, phone)
+      `)
       .in('id', orderIds);
       
     if (ordersError) throw ordersError;
@@ -436,6 +447,9 @@ export const fetchFarmerOrders = async (farmerId: string) => {
       return {
         id: order.id,
         customerId: order.customer_id,
+        customerName: order.customers?.name || 'Unknown Customer',
+        customerEmail: order.customers?.email || '',
+        customerPhone: order.customers?.phone || '',
         orderDate: order.order_date,
         items: relevantItems.map(item => ({
           productId: item.product_id,
