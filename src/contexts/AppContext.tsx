@@ -1,15 +1,8 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { User, CartItem, Product } from "@/lib/types";
 import { mockUsers, mockProducts } from "@/lib/mockData";
 import { toast } from "@/components/ui/use-toast";
-import { 
-  getCurrentUser, 
-  signIn, 
-  signOut, 
-  fetchProducts,
-  signUp
-} from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AppContextType {
   currentUser: User | null;
@@ -40,10 +33,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const initializeApp = async () => {
     // Check if user is already logged in
-    const user = await getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-      setIsLoggedIn(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Fetch additional user data from the users table
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (!error && userData) {
+          const user: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: userData.name || '',
+            role: userData.role as "farmer" | "consumer",
+            phone: userData.phone || '',
+            address: userData.address || '',
+            location: userData.location || '',
+            isVerified: userData.is_verified || false,
+            profileImage: userData.profile_image || ''
+          };
+          
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error checking authentication:", error);
     }
 
     // Load cart from localStorage
@@ -64,6 +83,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     initializeApp();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Fetch user profile after sign in
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (!error && userData) {
+            const user: User = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: userData.name || '',
+              role: userData.role as "farmer" | "consumer",
+              phone: userData.phone || '',
+              address: userData.address || '',
+              location: userData.location || '',
+              isVerified: userData.is_verified || false,
+              profileImage: userData.profile_image || ''
+            };
+            
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          setIsLoggedIn(false);
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -73,31 +130,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const refreshProducts = async () => {
     try {
-      const data = await fetchProducts();
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          users:farmer_id (name, location)
+        `);
+        
+      if (error) throw error;
+      
       if (data && data.length > 0) {
-        setProducts(data);
+        // Format data to match Product type
+        const formattedData = data.map((item: any) => ({
+          id: item.id,
+          farmerId: item.farmer_id,
+          farmerName: item.users?.name || 'Unknown Farmer',
+          name: item.name,
+          nameInTamil: item.name_in_tamil,
+          description: item.description,
+          category: item.category,
+          price: item.price,
+          quantity: item.quantity,
+          unit: item.unit,
+          harvestDate: item.harvest_date,
+          imageUrl: item.image_url,
+          rating: item.rating,
+          location: item.users?.location
+        }));
+        
+        setProducts(formattedData);
       }
     } catch (error) {
       console.error("Error refreshing products:", error);
+      // Fall back to mock data if real data fetch fails
+      setProducts(mockProducts);
     }
   };
 
   const login = async (email: string, password: string) => {
-    const result = await signIn(email, password);
-    
-    if (result.success && result.user) {
-      setCurrentUser(result.user as User);
-      setIsLoggedIn(true);
-      localStorage.setItem("currentUser", JSON.stringify(result.user));
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${result.user.name || 'User'}!`,
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      return true;
-    } else {
+      
+      if (error) throw error;
+      
+      // Auth successful, now fetch user profile data
+      if (data.user) {
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (userError) throw userError;
+        
+        if (userData) {
+          const user: User = {
+            id: data.user.id,
+            email: data.user.email || '',
+            name: userData.name || '',
+            role: userData.role as "farmer" | "consumer",
+            phone: userData.phone || '',
+            address: userData.address || '',
+            location: userData.location || '',
+            isVerified: userData.is_verified || false,
+            profileImage: userData.profile_image || ''
+          };
+          
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+          
+          toast({
+            title: "Login Successful",
+            description: `Welcome back, ${userData.name || 'User'}!`,
+          });
+          
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Login Failed",
-        description: result.error || "Invalid email or password",
+        description: error.message || "Invalid email or password",
         variant: "destructive",
       });
       return false;
@@ -106,20 +225,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const registerUser = async (userData: Partial<User>, password: string) => {
     try {
-      const result = await signUp(userData.email || "", password, userData);
-      if (result.success) {
+      const result = await supabase.auth.signUp({
+        email: userData.email || "",
+        password,
+        options: {
+          data: {
+            name: userData.name || "",
+            phone: userData.phone || "",
+            address: userData.address || "",
+            location: userData.location || "",
+            is_verified: false,
+            profile_image: ""
+          }
+        }
+      });
+      
+      if (result.error) {
+        toast({
+          title: "Registration Failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+        return false;
+      } else {
         toast({
           title: "Registration Successful",
           description: "Your account has been created successfully",
         });
         return true;
-      } else {
-        toast({
-          title: "Registration Failed",
-          description: result.error || "Failed to register",
-          variant: "destructive",
-        });
-        return false;
       }
     } catch (error: any) {
       toast({
@@ -132,7 +265,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     setCurrentUser(null);
     setIsLoggedIn(false);
     localStorage.removeItem("currentUser");

@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { toast } from "@/components/ui/use-toast";
 import { Product, User, CartItem, Order } from '@/lib/types';
@@ -518,26 +517,39 @@ export const getCurrentUser = async () => {
     
     if (!user) return null;
     
-    // Fetch user profile data
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    try {
+      // Fetch user profile data
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
       
-    if (error) throw error;
-    
-    return {
-      id: user.id,
-      email: user.email || '',
-      name: data.name,
-      role: data.role,
-      phone: data.phone,
-      address: data.address,
-      location: data.location,
-      isVerified: data.is_verified,
-      profileImage: data.profile_image
-    };
+      if (!data) {
+        console.error('User profile not found');
+        return null;
+      }
+      
+      return {
+        id: user.id,
+        email: user.email || '',
+        name: data.name || '',
+        role: data.role || 'consumer',
+        phone: data.phone || '',
+        address: data.address || '',
+        location: data.location || '',
+        isVerified: data.is_verified || false,
+        profileImage: data.profile_image || ''
+      };
+    } catch (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      return null;
+    }
   } catch (error: any) {
     console.error('Error getting current user:', error);
     return null;

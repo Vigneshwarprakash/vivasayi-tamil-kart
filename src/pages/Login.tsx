@@ -6,25 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApp } from "@/contexts/AppContext";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const { login, language } = useApp();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoginError("");
     
     try {
       const success = await login(email, password);
       if (success) {
         navigate("/");
+      } else {
+        setLoginError(language === "english" ? "Login failed. Please check your credentials." : "உள்நுழைவு தோல்வியுற்றது. உங்கள் சான்றுகளைச் சரிபார்க்கவும்.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
+      setLoginError(error.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +52,16 @@ const Login: React.FC = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {loginError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>
+                  {language === "english" ? "Login Failed" : "உள்நுழைவு தோல்வியுற்றது"}
+                </AlertTitle>
+                <AlertDescription>{loginError}</AlertDescription>
+              </Alert>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="email">
                 {language === "english" ? "Email" : "மின்னஞ்சல்"}
