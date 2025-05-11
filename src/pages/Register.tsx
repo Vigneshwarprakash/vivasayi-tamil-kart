@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useApp } from "@/contexts/AppContext";
+import { toast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Register: React.FC = () => {
   const [name, setName] = useState("");
@@ -17,6 +21,7 @@ const Register: React.FC = () => {
   const [role, setRole] = useState<"farmer" | "consumer">("consumer");
   const [isLoading, setIsLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [registrationError, setRegistrationError] = useState("");
   const { registerUser, login, language } = useApp();
   const navigate = useNavigate();
 
@@ -29,23 +34,70 @@ const Register: React.FC = () => {
     }
     
     setPasswordError("");
+    setRegistrationError("");
     setIsLoading(true);
     
     try {
-      const success = await registerUser({
-        name,
+      // First, sign up with auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        phone,
-        role
-      }, password);
+        password,
+        options: {
+          data: {
+            name,
+            role,
+            phone
+          }
+        }
+      });
       
-      if (success) {
+      if (authError) throw authError;
+      
+      // Only proceed if auth signup was successful
+      if (authData.user) {
+        // Insert into users table using service role client
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            email: email,
+            name: name,
+            role: role,
+            phone: phone || ''
+          });
+          
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+          setRegistrationError(profileError.message);
+          toast({
+            title: "Registration Failed",
+            description: `Error creating user profile: ${profileError.message}`,
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
         // Auto login after registration
         await login(email, password);
+        
+        toast({
+          title: "Registration Successful",
+          description: language === "english" 
+            ? "Your account has been created successfully" 
+            : "உங்கள் கணக்கு வெற்றிகரமாக உருவாக்கப்பட்டது",
+        });
+        
         navigate(role === "farmer" ? "/farmer-dashboard" : "/consumer-dashboard");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
+      setRegistrationError(error.message);
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +118,14 @@ const Register: React.FC = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {registrationError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{registrationError}</AlertDescription>
+              </Alert>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="name">
                 {language === "english" ? "Full Name" : "முழு பெயர்"}
