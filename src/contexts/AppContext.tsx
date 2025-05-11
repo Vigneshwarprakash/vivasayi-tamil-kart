@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { User, CartItem, Product } from "@/lib/types";
 import { mockUsers, mockProducts } from "@/lib/mockData";
@@ -178,36 +179,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // Auth successful, now fetch user profile data
       if (data.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', data.user.id)
+            .maybeSingle(); // Change from single() to maybeSingle() to handle case where no profile exists
+            
+          if (userError) throw userError;
           
-        if (userError) throw userError;
-        
-        if (userData) {
-          const user: User = {
-            id: data.user.id,
-            email: data.user.email || '',
-            name: userData.name || '',
-            role: userData.role as "farmer" | "consumer",
-            phone: userData.phone || '',
-            address: userData.address || '',
-            location: userData.location || '',
-            isVerified: userData.is_verified || false,
-            profileImage: userData.profile_image || ''
-          };
-          
-          setCurrentUser(user);
-          setIsLoggedIn(true);
-          
+          if (userData) {
+            const user: User = {
+              id: data.user.id,
+              email: data.user.email || '',
+              name: userData.name || '',
+              role: userData.role as "farmer" | "consumer",
+              phone: userData.phone || '',
+              address: userData.address || '',
+              location: userData.location || '',
+              isVerified: userData.is_verified || false,
+              profileImage: userData.profile_image || ''
+            };
+            
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+            
+            toast({
+              title: "Login Successful",
+              description: `Welcome back, ${userData.name || 'User'}!`,
+            });
+            
+            return true;
+          } else {
+            // Profile doesn't exist, create one
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert({
+                id: data.user.id,
+                email: data.user.email || '',
+                name: 'User',
+                role: 'consumer'
+              });
+              
+            if (insertError) throw insertError;
+            
+            const user: User = {
+              id: data.user.id,
+              email: data.user.email || '',
+              name: 'User',
+              role: 'consumer',
+              phone: '',
+              address: '',
+              location: '',
+              isVerified: false,
+              profileImage: ''
+            };
+            
+            setCurrentUser(user);
+            setIsLoggedIn(true);
+            
+            toast({
+              title: "Login Successful",
+              description: `Welcome to VivasayiKart!`,
+            });
+            
+            return true;
+          }
+        } catch (profileError: any) {
+          console.error("Error fetching user profile:", profileError);
           toast({
-            title: "Login Successful",
-            description: `Welcome back, ${userData.name || 'User'}!`,
+            title: "Login Error",
+            description: "Could not retrieve your profile data. Please try again.",
+            variant: "destructive",
           });
-          
-          return true;
+          return false;
         }
       }
       
